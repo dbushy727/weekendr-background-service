@@ -19,8 +19,10 @@ class User extends Authenticatable
         'email', 'airport_code',
     ];
 
+    protected $touches = ['user_flight_deals'];
+
     public function flight_deals()
     {
-        return $this->belongsToMany(FlightDeal::class, 'user_flight_deals');
+        return $this->belongsToMany(FlightDeal::class, 'user_flight_deals')->withTimestamps()->withPivot(['notified_at']);
     }
 }

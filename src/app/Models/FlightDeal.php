@@ -12,6 +12,7 @@ class FlightDeal extends Model
      * @var array
      */
     protected $fillable = [
+        'destination_city',
         'departure_origin',
         'departure_destination',
         'departure_carrier',
@@ -20,10 +21,13 @@ class FlightDeal extends Model
         'return_destination',
         'return_carrier',
         'return_date',
+        'price',
     ];
+
+    protected $dates = ['departure_date', 'return_date', 'created_at', 'updated_at'];
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'user_flight_deals');
+        return $this->belongsToMany(User::class, 'user_flight_deals')->withTimestamps()->withPivot(['notified_at']);
     }
 }

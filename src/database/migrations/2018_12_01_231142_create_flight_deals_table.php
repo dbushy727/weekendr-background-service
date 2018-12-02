@@ -16,7 +16,7 @@ class CreateFlightDealsTable extends Migration
         Schema::create('flight_deals', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('price');
-
+            $table->string('destination_city');
             $table->string('departure_origin');
             $table->string('departure_destination');
             $table->string('departure_carrier');
@@ -28,6 +28,13 @@ class CreateFlightDealsTable extends Migration
             $table->datetime('return_date');
 
             $table->timestamps();
+
+            $table->unique([
+                'departure_origin',
+                'departure_destination',
+                'departure_date',
+                'return_date',
+            ], 'unique_flight_deal');
         });
     }
 

@@ -9,7 +9,7 @@ use GuzzleHttp\Psr7\Request;
 class Skyscanner
 {
     protected const BASE_URI = 'https://skyscanner-skyscanner-flight-search-v1.p.rapidapi.com/apiservices/browsequotes/v1.0';
-    public const LOCALE      = 'en-US';
+    public const LOCALE = 'en-US';
     public $request;
     public $response;
     public $data;

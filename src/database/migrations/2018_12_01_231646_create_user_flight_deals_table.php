@@ -17,7 +17,9 @@ class CreateUserFlightDealsTable extends Migration
             $table->increments('id');
             $table->integer('user_id')->unsigned();
             $table->integer('flight_deal_id')->unsigned();
+
             $table->timestamps();
+            $table->timestamp('notified_at')->nullable();
 
             $table->foreign('user_id')
                 ->references('id')
@@ -28,6 +30,8 @@ class CreateUserFlightDealsTable extends Migration
                 ->references('id')
                 ->on('flight_deals')
                 ->onDelete('cascade');
+
+            $table->unique(['user_id', 'flight_deal_id']);
         });
     }
 
