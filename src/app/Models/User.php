@@ -1,6 +1,6 @@
 <?php
 
-namespace Weekendr;
+namespace Weekendr\Models;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -16,15 +16,11 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'email', 'airport_code',
     ];
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password', 'remember_token',
-    ];
+    public function flight_deals()
+    {
+        return $this->belongsToMany(FlightDeal::class, 'user_flight_deals');
+    }
 }

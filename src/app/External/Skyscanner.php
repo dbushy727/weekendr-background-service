@@ -80,6 +80,15 @@ class Skyscanner
         return collect($this->data['Places'])->where('PlaceId', $place_id)->first();
     }
 
+    protected function getCarrier($carrier_id)
+    {
+        if (!$this->data) {
+            throw new \Exception('No data has been set yet.');
+        }
+
+        return collect($this->data['Carriers'])->where('CarrierId', $carrier_id)->first();
+    }
+
     protected function filter($price = 200, $direct = true)
     {
         if (!$this->data) {
@@ -102,9 +111,11 @@ class Skyscanner
         $this->results = $this->results->map(function ($quote, $key) {
             $quote['OutboundLeg']['Origin'] = $this->getPlace($quote['OutboundLeg']['OriginId']);
             $quote['OutboundLeg']['Destination'] = $this->getPlace($quote['OutboundLeg']['DestinationId']);
+            $quote['OutboundLeg']['Carrier'] = $this->getCarrier(array_first($quote['OutboundLeg']['CarrierIds']));
 
             $quote['InboundLeg']['Origin'] = $this->getPlace($quote['InboundLeg']['OriginId']);
             $quote['InboundLeg']['Destination'] = $this->getPlace($quote['InboundLeg']['DestinationId']);
+            $quote['InboundLeg']['Carrier'] = $this->getCarrier(array_first($quote['InboundLeg']['CarrierIds']));
 
             return $quote;
         });
