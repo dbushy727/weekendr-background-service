@@ -19,7 +19,7 @@ class User extends Authenticatable
         'email', 'airport_code',
     ];
 
-    protected $touches = ['user_flight_deals'];
+    // protected $touches = ['user_flight_deals'];
 
     public function flight_deals()
     {
