@@ -18,3 +18,7 @@ Route::get('/', function () {
 Route::post('/mailchimp-webhook', function () {
     return 'Mailchimp, I see you';
 });
+
+Route::get('/mailchimp-webhook', function () {
+    return 'Mailchimp Validator';
+});
