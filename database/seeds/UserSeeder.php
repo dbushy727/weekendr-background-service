@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
 
         foreach (range(1, 50) as $time) {
             DB::table('users')->insert([
-                'email' => "danny_{$time}@weekendr.io"
+                'email' => "danny_{$time}@weekendr.io",
                 'airport_code' => array_random($airports),
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
