@@ -14,3 +14,7 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::post('/mailchimp-webhook', function () {
+    return 'Mailchimp, I see you';
+});
