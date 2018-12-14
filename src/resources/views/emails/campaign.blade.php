@@ -575,7 +575,7 @@
                    <td valign="top" class="mcnTextBlockInner" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
                             <div class="mcnTextContent" style="word-break: break-word;color: #111111;font-family: Georgia;font-size: 16px;line-height: 150%;text-align: left;">
                                    @foreach($flight_deals as $flight_deal)
-                                   <div><a href="#">{{ $flight_deal }}</a></div>
+                                   <div><a href="{{ $flight_deal->link }}">{{ $flight_deal->text }}</a></div>
                                    @endforeach
                             </div>
                    </td>

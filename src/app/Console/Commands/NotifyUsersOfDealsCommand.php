@@ -7,6 +7,7 @@ use Illuminate\Console\Command;
 use Mailchimp\MailchimpCampaigns;
 use Mailchimp\MailchimpLists;
 use Weekendr\External\Mailchimp;
+use Weekendr\Models\FlightDeal;
 use Weekendr\Models\User;
 
 class NotifyUsersOfDealsCommand extends Command
@@ -25,6 +26,10 @@ class NotifyUsersOfDealsCommand extends Command
      */
     protected $description = 'Notify users of upcoming deals';
 
+    protected $mailchimp_lists;
+
+    protected $mailchimp_campaigns;
+
     /**
      * Create a new command instance.
      *
@@ -33,6 +38,9 @@ class NotifyUsersOfDealsCommand extends Command
     public function __construct()
     {
         parent::__construct();
+
+        $this->mailchimp_campaigns = new MailchimpCampaigns(env('MAILCHIMP_API_KEY'));
+        $this->mailchimp_lists     = new MailchimpLists(env('MAILCHIMP_API_KEY'));
     }
 
     /**
@@ -42,8 +50,8 @@ class NotifyUsersOfDealsCommand extends Command
      */
     public function handle()
     {
-        return $this->getFlightDeals()->each(function ($data, $airport_code) {
-            return $this->sendEmail($airport_code, $data->first()->flight_deals);
+        return $this->getUsersWithFlightDeals()->each(function ($users) {
+            $this->sendEmail($users);
         });
     }
 
@@ -52,48 +60,68 @@ class NotifyUsersOfDealsCommand extends Command
      *
      * @return Collection
      */
-    public function getFlightDeals()
+    public function getUsersWithFlightDeals()
     {
-        $users =  User::with([
+        return User::with([
             'flight_deals' => function ($q) {
                 $q->whereNull('notified_at');
+                $q->whereDate('departure_date', '>=', Carbon::now()->toDateString());
             }])->whereHas('flight_deals', function ($q) {
-                return $q->whereNull('notified_at');
-            })->get();
-
-        return $users->groupBy('airport_code')->take(2);
+                $q->whereNull('notified_at');
+                $q->whereDate('departure_date', '>=', Carbon::now()->toDateString());
+            })->get()->groupBy('airport_code');
     }
 
-    public function mailchimp_campaigns()
+    public function sendEmail($users)
     {
-        return new MailchimpCampaigns(env('MAILCHIMP_API_KEY'));
+        $campaign = $this->createNewCampaign($users);
+        $this->setCampaignContent($campaign, $users->first()->flight_deals);
+
+        return $this->send($users, $campaign);
     }
 
-    public function mailchimp_lists()
+    public function send($users, $campaign)
     {
-        return new MailchimpLists(env('MAILCHIMP_API_KEY'));
+        $this->mailchimp_campaigns->send($campaign->id);
+        $this->updateUserNotificationTime($users);
+
+        return true;
     }
 
-    public function getList($list_name)
+    public function updateUserNotificationTime($users)
     {
-        return collect($this->mailchimp_lists()->getLists()->lists)->where('name', $list_name)->first();
+        $now = Carbon::now();
+        $users->each(function ($user) use ($now) {
+            $user->flight_deals->each(function ($flight_deal) use ($now) {
+                $flight_deal->pivot->notified_at = $now;
+                $flight_deal->pivot->save();
+            });
+        });
     }
 
-    public function recipients($airport)
+    public function createNewCampaign($users)
     {
+        $recipients = $this->recipients($users);
+        $settings   = $this->settings($users->first()->airport_code);
+
+        return $this->mailchimp_campaigns->addCampaign('regular', $recipients, $settings);
+    }
+
+    public function setCampaignContent($campaign, $flight_deals)
+    {
+        $html = view('emails.campaign', ['flight_deals' => $this->formatDeals($flight_deals)])->render();
+
+        return $this->mailchimp_campaigns->setCampaignContent($campaign->id, ['html' => preg_replace("/\r|\n|\t/", "", $html)]);
+    }
+
+    public function recipients($users)
+    {
+        $list    = $this->getList('Internal List');
+        $segment = $this->createSegment($list, $users);
+
         return [
-            'list_id'      => $this->getList('Internal List')->id,
-            'segment_opts' => [
-                'match'      => 'all',
-                'conditions' => [
-                    [
-                        'condition_type' => 'TextMerge',
-                        'op'             => 'is',
-                        'field'          => 'MERGE5',
-                        'value'          => $airport,
-                    ]
-                ],
-            ],
+            'list_id'      => $list->id,
+            'segment_opts' => ['saved_segment_id' => $segment->id],
         ];
     }
 
@@ -107,16 +135,20 @@ class NotifyUsersOfDealsCommand extends Command
         ];
     }
 
-    public function createNewCampaign($mailchimp_campaigns, $airport)
+    public function getList($list_name)
     {
-        return $mailchimp_campaigns->addCampaign('regular', $this->recipients($airport), $this->settings($airport));
+        return collect($this->mailchimp_lists->getLists()->lists)
+            ->where('name', $list_name)
+            ->first();
     }
 
-    public function setCampaignContent($mailchimp_campaigns, $campaign, $flight_deals)
+    public function createSegment($list, $users)
     {
-        $html = view('emails.campaign', ['flight_deals' => $this->formatDeals($flight_deals)])->render();
+        $name = sprintf("[%s] %s", Carbon::now()->toDatetimeString(), $users->first()->airport_code);
 
-        return $mailchimp_campaigns->setCampaignContent($campaign->id, ['html' => preg_replace("/\r|\n|\t/", "", $html)]);
+        return $this->mailchimp_lists->addSegment($list->id, $name, [
+            'static_segment' => $users->pluck('email')->toArray(),
+        ]);
     }
 
     /**
@@ -128,19 +160,26 @@ class NotifyUsersOfDealsCommand extends Command
     public function formatDeals($flight_deals)
     {
         return $flight_deals->map(function ($flight_deal) {
-            // ($170) Atlanta on American Airlines/JetBlue
-            $carriers = collect([$flight_deal->departure_carrier, $flight_deal->return_carrier])->unique()->implode('/');
+            $carriers = collect([$flight_deal->departure_carrier, $flight_deal->return_carrier])
+                ->unique()
+                ->implode('/');
+            $flight_deal->text = sprintf("($%s) %s on %s", $flight_deal->price / 100, $flight_deal->destination_city, $carriers);
+            $flight_deal->link = $this->generateFlightLink($flight_deal);
 
-            return sprintf("($%s) %s on %s", $flight_deal->price / 100, $flight_deal->destination_city, $carriers);
+            return $flight_deal;
         });
     }
 
-    public function sendEmail($airport, $flight_deals)
+    public function generateFlightLink(FlightDeal $flight_deal)
     {
-        $mailchimp_campaigns = $this->mailchimp_campaigns();
-        $campaign            = $this->createNewCampaign($mailchimp_campaigns, $airport);
-        $this->setCampaignContent($mailchimp_campaigns, $campaign, $flight_deals);
+        $url = 'https://www.skyscanner.com/transport/flights/%s/%s/%s/%s/?adults=1&children=0&adultsv2=1&childrenv2=&infants=0&cabinclass=economy&rtn=1&preferdirects=true&outboundaltsenabled=false&inboundaltsenabled=false&ref=home#results';
+        $replacements = [
+            $flight_deal->departure_origin,
+            $flight_deal->departure_destination,
+            $flight_deal->departure_date->format('ymd'),
+            $flight_deal->return_date->format('ymd')
+        ];
 
-        return $mailchimp_campaigns->send($campaign->id);
+        return sprintf($url, ...$replacements);
     }
 }

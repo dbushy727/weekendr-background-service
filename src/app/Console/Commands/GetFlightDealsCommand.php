@@ -55,16 +55,16 @@ class GetFlightDealsCommand extends Command
     public function createFlightDeal($deal, $airport)
     {
         $flight_deal = FlightDeal::firstOrCreate([
-            'destination_city' => array_get($deal, 'OutboundLeg.Destination.CityName'),
-            'departure_origin' => array_get($deal, 'OutboundLeg.Origin.IataCode'),
+            'destination_city'      => array_get($deal, 'OutboundLeg.Destination.CityName'),
+            'departure_origin'      => array_get($deal, 'OutboundLeg.Origin.IataCode'),
             'departure_destination' => array_get($deal, 'OutboundLeg.Destination.IataCode'),
-            'departure_carrier' => array_get($deal, 'OutboundLeg.Carrier.Name'),
-            'departure_date' => Carbon::parse(array_get($deal, 'OutboundLeg.DepartureDate')),
-            'return_origin' => array_get($deal, 'InboundLeg.Origin.IataCode'),
-            'return_destination' => array_get($deal, 'InboundLeg.Destination.IataCode'),
-            'return_carrier' => array_get($deal, 'InboundLeg.Carrier.Name'),
-            'return_date' => Carbon::parse(array_get($deal, 'InboundLeg.DepartureDate')),
-            'price' => (int) array_get($deal, 'MinPrice') * 100
+            'departure_carrier'     => array_get($deal, 'OutboundLeg.Carrier.Name'),
+            'departure_date'        => Carbon::parse(array_get($deal, 'OutboundLeg.DepartureDate')),
+            'return_origin'         => array_get($deal, 'InboundLeg.Origin.IataCode'),
+            'return_destination'    => array_get($deal, 'InboundLeg.Destination.IataCode'),
+            'return_carrier'        => array_get($deal, 'InboundLeg.Carrier.Name'),
+            'return_date'           => Carbon::parse(array_get($deal, 'InboundLeg.DepartureDate')),
+            'price'                 => (int) array_get($deal, 'MinPrice') * 100,
         ]);
 
         $this->attachDealToUsers($flight_deal, $airport);
