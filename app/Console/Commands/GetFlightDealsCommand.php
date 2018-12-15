@@ -4,6 +4,7 @@ namespace Weekendr\Console\Commands;
 
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use League\CLImate\CLImate;
 use Weekendr\External\Skyscanner;
 use Weekendr\Models\FlightDeal;
 use Weekendr\Models\User;
@@ -24,8 +25,9 @@ class GetFlightDealsCommand extends Command
      */
     protected $description = 'Hit the Skyscanner API and get flight deals';
 
-    protected $safeguard = 10;
+    protected $safeguard = 20;
     protected $error_counter = 1;
+    protected $climate;
 
     /**
      * Create a new command instance.
@@ -35,6 +37,7 @@ class GetFlightDealsCommand extends Command
     public function __construct()
     {
         parent::__construct();
+        $this->climate = new CLImate;
     }
 
     /**
@@ -47,27 +50,38 @@ class GetFlightDealsCommand extends Command
         $skyscanner = app(Skyscanner::class);
 
         $this->airports()->each(function ($airport) use ($skyscanner) {
+            $now = Carbon::now()->toDatetimeString();
             $this->error_counter = 1;
+
+            $this->climate->out("[{$now}] Fetching deals for airport: {$airport}");
             $this->createFlightDeals($skyscanner, $airport);
         });
     }
 
     public function createFlightDeal($deal, $airport)
     {
-        $flight_deal = FlightDeal::firstOrCreate([
-            'destination_city'      => array_get($deal, 'OutboundLeg.Destination.CityName'),
-            'departure_origin'      => array_get($deal, 'OutboundLeg.Origin.IataCode'),
-            'departure_destination' => array_get($deal, 'OutboundLeg.Destination.IataCode'),
-            'departure_carrier'     => array_get($deal, 'OutboundLeg.Carrier.Name'),
-            'departure_date'        => Carbon::parse(array_get($deal, 'OutboundLeg.DepartureDate')),
-            'return_origin'         => array_get($deal, 'InboundLeg.Origin.IataCode'),
-            'return_destination'    => array_get($deal, 'InboundLeg.Destination.IataCode'),
-            'return_carrier'        => array_get($deal, 'InboundLeg.Carrier.Name'),
-            'return_date'           => Carbon::parse(array_get($deal, 'InboundLeg.DepartureDate')),
-            'price'                 => (int) array_get($deal, 'MinPrice') * 100,
-        ]);
-
-        $this->attachDealToUsers($flight_deal, $airport);
+        try {
+            return FlightDeal::firstOrFail([
+                'departure_origin'      => array_get($deal, 'OutboundLeg.Origin.IataCode'),
+                'departure_destination' => array_get($deal, 'OutboundLeg.Destination.IataCode'),
+                'departure_date'        => Carbon::parse(array_get($deal, 'OutboundLeg.DepartureDate')),
+                'return_date'           => Carbon::parse(array_get($deal, 'InboundLeg.DepartureDate')),
+            ]);
+        } catch (\Exception $e) {
+            $this->climate->green("Found a flight deal for {$airport}");
+            return FlightDeal::create([
+                'departure_origin'      => array_get($deal, 'OutboundLeg.Origin.IataCode'),
+                'departure_destination' => array_get($deal, 'OutboundLeg.Destination.IataCode'),
+                'departure_date'        => Carbon::parse(array_get($deal, 'OutboundLeg.DepartureDate')),
+                'return_date'           => Carbon::parse(array_get($deal, 'InboundLeg.DepartureDate')),
+                'destination_city'      => array_get($deal, 'OutboundLeg.Destination.CityName'),
+                'departure_carrier'     => array_get($deal, 'OutboundLeg.Carrier.Name'),
+                'return_origin'         => array_get($deal, 'InboundLeg.Origin.IataCode'),
+                'return_destination'    => array_get($deal, 'InboundLeg.Destination.IataCode'),
+                'return_carrier'        => array_get($deal, 'InboundLeg.Carrier.Name'),
+                'price'                 => (int) array_get($deal, 'MinPrice') * 100,
+            ]);
+        }
     }
 
     public function airports()
@@ -96,23 +110,30 @@ class GetFlightDealsCommand extends Command
         try {
             $flight_deals = $skyscanner->getResults($this->friday(), $this->sunday(), $airport);
             foreach ($flight_deals as $deal) {
-                $this->createFlightDeal($deal, $airport);
+                $flight_deal = $this->createFlightDeal($deal, $airport);
+                $this->attachDealToUsers($flight_deal, $airport);
             }
         } catch (\Exception $e) {
-            \Log::info($e->getMessage());
             // No issues here, just couldnt find deals for this airport
             if ($e->getMessage() == 'No results') {
                 return;
             }
 
             $this->error_counter++;
+            $this->climate->red("Error: {$e->getMessage()}");
+
             if ($this->error_counter >= $this->safeguard) {
                 throw new \Exception('Too many errors. Could not create flight deals for airport: ' . $airport);
             }
 
-            sleep(2);
-            $this->createFlightDeals($skyscanner, $airport);
+            $this->tryAgain($skyscanner, $airport);
         }
+    }
+
+    public function tryAgain($skyscanner, $airport)
+    {
+        sleep(2);
+        return $this->createFlightDeals($skyscanner, $airport);
     }
 
     public function attachDealToUsers($flight_deal, $airport)

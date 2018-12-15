@@ -13,6 +13,7 @@
         "guzzlehttp/guzzle": "^6.3",
         "laravel/framework": "5.7.*",
         "laravel/tinker": "^1.0",
+        "league/climate": "^3.4",
         "sendgrid/sendgrid": "~7",
         "thinkshout/mailchimp-api-php": "^2.0"
     },
