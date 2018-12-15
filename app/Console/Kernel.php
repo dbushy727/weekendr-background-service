@@ -25,7 +25,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('custom:get-flight-deals')->hourly();
-        $schedule->command('custom:notify-users')->dailyAt('15:00');
+        $schedule->command('custom:notify-users')->dailyAt('15:00')->timezone('America/New_York');
     }
 
     /**
