@@ -110,6 +110,7 @@ class GetFlightDealsCommand extends Command
                 throw new \Exception('Too many errors. Could not create flight deals for airport: ' . $airport);
             }
 
+            sleep(2);
             $this->createFlightDeals($skyscanner, $airport);
         }
     }
