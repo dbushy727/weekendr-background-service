@@ -47,6 +47,7 @@ class GetFlightDealsCommand extends Command
      */
     public function handle()
     {
+        $this->climate->out('Start Getting Flights');
         $skyscanner = app(Skyscanner::class);
 
         $this->airports()->each(function ($airport) use ($skyscanner) {
@@ -56,6 +57,8 @@ class GetFlightDealsCommand extends Command
             $this->climate->out("[{$now}] Fetching deals for airport: {$airport}");
             $this->createFlightDeals($skyscanner, $airport);
         });
+
+        $this->climate->green('Finished Getting Flights');
     }
 
     public function createFlightDeal($deal, $airport)
