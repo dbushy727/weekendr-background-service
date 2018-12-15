@@ -102,7 +102,7 @@ class NotifyUsersOfDealsCommand extends Command
     public function createNewCampaign($users)
     {
         $recipients = $this->recipients($users);
-        $settings   = $this->settings($users->first()->airport_code);
+        $settings   = $this->settings($users->first()->airport_code, $users->first()->flight_deals);
 
         return $this->mailchimp_campaigns->addCampaign('regular', $recipients, $settings);
     }
@@ -125,10 +125,12 @@ class NotifyUsersOfDealsCommand extends Command
         ];
     }
 
-    public function settings($airport)
+    public function settings($airport, $flight_deals)
     {
+        $cheapest_price = $flight_deals->sortBy('price')->first()->price / 100;
+
         return [
-            'subject_line' => 'Weekendr found some deals for this weekend',
+            'subject_line' => "We found flights as low as ${$cheapest_price} for this weekend",
             'title'        => sprintf("[%s] %s", Carbon::now()->toDatetimeString(), $airport),
             'from_name'    => 'Weekendr',
             'reply_to'     => 'no-reply@weekendr.io',
