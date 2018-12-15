@@ -63,14 +63,12 @@ class GetFlightDealsCommand extends Command
 
     public function createFlightDeal($deal, $airport)
     {
-        try {
-            return FlightDeal::firstOrFail([
-                'departure_origin'      => array_get($deal, 'OutboundLeg.Origin.IataCode'),
-                'departure_destination' => array_get($deal, 'OutboundLeg.Destination.IataCode'),
-                'departure_date'        => Carbon::parse(array_get($deal, 'OutboundLeg.DepartureDate')),
-                'return_date'           => Carbon::parse(array_get($deal, 'InboundLeg.DepartureDate')),
-            ]);
-        } catch (\Exception $e) {
+        return FlightDeal::where([
+            'departure_origin'      => array_get($deal, 'OutboundLeg.Origin.IataCode'),
+            'departure_destination' => array_get($deal, 'OutboundLeg.Destination.IataCode'),
+            'departure_date'        => Carbon::parse(array_get($deal, 'OutboundLeg.DepartureDate')),
+            'return_date'           => Carbon::parse(array_get($deal, 'InboundLeg.DepartureDate')),
+        ])->firstOr(function () {
             $this->climate->green("Found a flight deal for {$airport}");
             return FlightDeal::create([
                 'departure_origin'      => array_get($deal, 'OutboundLeg.Origin.IataCode'),
@@ -84,7 +82,7 @@ class GetFlightDealsCommand extends Command
                 'return_carrier'        => array_get($deal, 'InboundLeg.Carrier.Name'),
                 'price'                 => (int) array_get($deal, 'MinPrice') * 100,
             ]);
-        }
+        });
     }
 
     public function airports()
