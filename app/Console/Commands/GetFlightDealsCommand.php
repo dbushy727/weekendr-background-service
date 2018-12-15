@@ -68,7 +68,7 @@ class GetFlightDealsCommand extends Command
             'departure_destination' => array_get($deal, 'OutboundLeg.Destination.IataCode'),
             'departure_date'        => Carbon::parse(array_get($deal, 'OutboundLeg.DepartureDate')),
             'return_date'           => Carbon::parse(array_get($deal, 'InboundLeg.DepartureDate')),
-        ])->firstOr(function () {
+        ])->firstOr(function () use ($airport) {
             $this->climate->green("Found a flight deal for {$airport}");
             return FlightDeal::create([
                 'departure_origin'      => array_get($deal, 'OutboundLeg.Origin.IataCode'),
