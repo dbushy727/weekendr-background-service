@@ -130,7 +130,7 @@ class NotifyUsersOfDealsCommand extends Command
         $cheapest_price = $flight_deals->sortBy('price')->first()->price / 100;
 
         return [
-            'subject_line' => "We found flights as low as ${$cheapest_price} for this weekend",
+            'subject_line' => $airport . ' We found flights as low as $'.$cheapest_price. ' for this weekend',
             'title'        => sprintf("[%s] %s", Carbon::now()->toDatetimeString(), $airport),
             'from_name'    => 'Weekendr',
             'reply_to'     => 'no-reply@weekendr.io',
