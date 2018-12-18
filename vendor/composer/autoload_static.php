@@ -381,6 +381,20 @@ class ComposerStaticInit99e091070b5b36f613b55db30f41744e
     );
 
     public static $prefixesPsr0 = array (
+        'S' => 
+        array (
+            'Sentry\\SentryLaravel\\' => 
+            array (
+                0 => __DIR__ . '/..' . '/sentry/sentry-laravel/src',
+            ),
+        ),
+        'R' => 
+        array (
+            'Raven_' => 
+            array (
+                0 => __DIR__ . '/..' . '/sentry/sentry/lib',
+            ),
+        ),
         'P' => 
         array (
             'Prophecy\\' => 
@@ -3215,6 +3229,28 @@ class ComposerStaticInit99e091070b5b36f613b55db30f41744e
         'Ramsey\\Uuid\\UuidFactory' => __DIR__ . '/..' . '/ramsey/uuid/src/UuidFactory.php',
         'Ramsey\\Uuid\\UuidFactoryInterface' => __DIR__ . '/..' . '/ramsey/uuid/src/UuidFactoryInterface.php',
         'Ramsey\\Uuid\\UuidInterface' => __DIR__ . '/..' . '/ramsey/uuid/src/UuidInterface.php',
+        'Raven_Autoloader' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Autoloader.php',
+        'Raven_Breadcrumbs' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Breadcrumbs.php',
+        'Raven_Breadcrumbs_ErrorHandler' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Breadcrumbs/ErrorHandler.php',
+        'Raven_Breadcrumbs_MonologHandler' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Breadcrumbs/MonologHandler.php',
+        'Raven_Client' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Client.php',
+        'Raven_Compat' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Compat.php',
+        'Raven_Context' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Context.php',
+        'Raven_CurlHandler' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/CurlHandler.php',
+        'Raven_ErrorHandler' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/ErrorHandler.php',
+        'Raven_Exception' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Exception.php',
+        'Raven_Processor' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Processor.php',
+        'Raven_Processor_RemoveCookiesProcessor' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Processor/RemoveCookiesProcessor.php',
+        'Raven_Processor_RemoveHttpBodyProcessor' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Processor/RemoveHttpBodyProcessor.php',
+        'Raven_Processor_SanitizeDataProcessor' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Processor/SanitizeDataProcessor.php',
+        'Raven_Processor_SanitizeHttpHeadersProcessor' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Processor/SanitizeHttpHeadersProcessor.php',
+        'Raven_Processor_SanitizeStacktraceProcessor' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Processor/SanitizeStacktraceProcessor.php',
+        'Raven_ReprSerializer' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/ReprSerializer.php',
+        'Raven_SanitizeDataProcessor' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/SanitizeDataProcessor.php',
+        'Raven_Serializer' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Serializer.php',
+        'Raven_Stacktrace' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Stacktrace.php',
+        'Raven_TransactionStack' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/TransactionStack.php',
+        'Raven_Util' => __DIR__ . '/..' . '/sentry/sentry/lib/Raven/Util.php',
         'SebastianBergmann\\CodeCoverage\\CodeCoverage' => __DIR__ . '/..' . '/phpunit/php-code-coverage/src/CodeCoverage.php',
         'SebastianBergmann\\CodeCoverage\\CoveredCodeNotExecutedException' => __DIR__ . '/..' . '/phpunit/php-code-coverage/src/Exception/CoveredCodeNotExecutedException.php',
         'SebastianBergmann\\CodeCoverage\\Driver\\Driver' => __DIR__ . '/..' . '/phpunit/php-code-coverage/src/Driver/Driver.php',
@@ -3358,6 +3394,13 @@ class ComposerStaticInit99e091070b5b36f613b55db30f41744e
         'SendGrid\\Mail\\TypeException' => __DIR__ . '/..' . '/sendgrid/sendgrid/lib/mail/TypeException.php',
         'SendGrid\\Response' => __DIR__ . '/..' . '/sendgrid/php-http-client/lib/Response.php',
         'SendGrid\\Stats\\Stats' => __DIR__ . '/..' . '/sendgrid/sendgrid/lib/stats/Stats.php',
+        'Sentry\\SentryLaravel\\SentryFacade' => __DIR__ . '/..' . '/sentry/sentry-laravel/src/Sentry/SentryLaravel/SentryFacade.php',
+        'Sentry\\SentryLaravel\\SentryLaravel' => __DIR__ . '/..' . '/sentry/sentry-laravel/src/Sentry/SentryLaravel/SentryLaravel.php',
+        'Sentry\\SentryLaravel\\SentryLaravelEventHandler' => __DIR__ . '/..' . '/sentry/sentry-laravel/src/Sentry/SentryLaravel/SentryLaravelEventHandler.php',
+        'Sentry\\SentryLaravel\\SentryLaravelServiceProvider' => __DIR__ . '/..' . '/sentry/sentry-laravel/src/Sentry/SentryLaravel/SentryLaravelServiceProvider.php',
+        'Sentry\\SentryLaravel\\SentryLogChannel' => __DIR__ . '/..' . '/sentry/sentry-laravel/src/Sentry/SentryLaravel/SentryLogChannel.php',
+        'Sentry\\SentryLaravel\\SentryLumenServiceProvider' => __DIR__ . '/..' . '/sentry/sentry-laravel/src/Sentry/SentryLaravel/SentryLumenServiceProvider.php',
+        'Sentry\\SentryLaravel\\SentryTestCommand' => __DIR__ . '/..' . '/sentry/sentry-laravel/src/Sentry/SentryLaravel/SentryTestCommand.php',
         'Symfony\\Component\\Console\\Application' => __DIR__ . '/..' . '/symfony/console/Application.php',
         'Symfony\\Component\\Console\\CommandLoader\\CommandLoaderInterface' => __DIR__ . '/..' . '/symfony/console/CommandLoader/CommandLoaderInterface.php',
         'Symfony\\Component\\Console\\CommandLoader\\ContainerCommandLoader' => __DIR__ . '/..' . '/symfony/console/CommandLoader/ContainerCommandLoader.php',

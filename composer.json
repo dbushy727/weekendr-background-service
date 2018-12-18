@@ -15,6 +15,7 @@
         "laravel/tinker": "^1.0",
         "league/climate": "^3.4",
         "sendgrid/sendgrid": "~7",
+        "sentry/sentry-laravel": "^0.11.0",
         "thinkshout/mailchimp-api-php": "^2.0"
     },
     "require-dev": {
