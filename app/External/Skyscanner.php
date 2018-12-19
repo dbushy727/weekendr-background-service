@@ -24,7 +24,7 @@ class Skyscanner
         Carbon $outboundDate,
         Carbon $inboundDate,
         string $origin,
-        $destination = 'US-sky',
+        $destination = 'Anywhere',
         $local_country = 'US',
         $local_currency = 'USD'
     ) {
@@ -40,7 +40,7 @@ class Skyscanner
         Carbon $outboundDate,
         Carbon $inboundDate,
         string $origin,
-        $destination = 'US-sky',
+        $destination = 'Anywhere',
         $local_country = 'US',
         $local_currency = 'USD'
     ) {
