@@ -15,19 +15,20 @@ class MailchimpWebhookController extends Controller
     public function store(Request $request)
     {
         $data = $request->all();
+        \Log::info($request->get('type'));
 
         switch ($request->get('type')) {
             case 'subscribe':
-                return $this->addUser($data);
+                return $this->addUser(array_get($data, 'data'));
                 break;
 
             case 'unsubscribe':
-                return $this->deleteUser($data);
+                return $this->deleteUser(array_get($data, 'data'));
                 break;
 
             case 'profile':
             case 'upemail':
-                return $this->updateUser($data);
+                return $this->updateUser(array_get($data, 'data'));
                 break;
 
             default:
