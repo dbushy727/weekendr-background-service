@@ -17,6 +17,4 @@ Route::get('/', function () {
 
 Route::post('/mailchimp-webhook', 'MailchimpWebhookController@store');
 
-Route::get('/mailchimp-webhook', function () {
-    return 'Mailchimp Validator';
-});
+Route::get('/mailchimp-webhook', 'MailchimpWebhookController@index');
