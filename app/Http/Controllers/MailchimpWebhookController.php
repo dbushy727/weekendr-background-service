@@ -4,7 +4,7 @@ namespace Weekendr\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class MailchimpController extends Controller
+class MailchimpWebhookController extends Controller
 {
     public function store(Request $request)
     {
