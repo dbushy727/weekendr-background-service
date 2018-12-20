@@ -15,7 +15,6 @@ class MailchimpWebhookController extends Controller
     public function store(Request $request)
     {
         $data = $request->all();
-        \Log::info($request->get('type'));
 
         switch ($request->get('type')) {
             case 'subscribe':
