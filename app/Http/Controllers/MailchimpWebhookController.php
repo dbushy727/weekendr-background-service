@@ -14,41 +14,43 @@ class MailchimpWebhookController extends Controller
 
     public function store(Request $request)
     {
+        $data = $request->all();
+
         switch ($request->get('type')) {
             case 'subscribe':
-                return $this->addUser($request->get('data.email'), $request->all());
+                return $this->addUser($data);
                 break;
 
             case 'unsubscribe':
-                return $this->deleteUser($request->get('data.email'), $request->all());
+                return $this->deleteUser($data);
                 break;
 
             case 'profile':
-                return $this->updateUser($request->get('data.email'), $request->all());
+            case 'upemail':
+                return $this->updateUser($data);
                 break;
 
             default:
-                $data = $request->all();
                 throw new \Exception('Mailchimp Webhook type not supported: ' . $data);
                 break;
         }
     }
 
-    protected function addUser($email, $data)
+    protected function addUser($data)
     {
-        return User::create(['email' => $email, 'airport_code' => array_get($data, 'merges.MMERGE5')]);
+        return User::create(['email' => array_get($data, 'email'), 'airport_code' => array_get($data, 'merges.MMERGE5')]);
     }
 
-    protected function deleteUser($email, $data)
+    protected function deleteUser($data)
     {
-        $user = User::where('email', 'danny+user_1@weekendr.io')->firstOrFail();
-
-        return $user->delete();
+        $user = User::where('email', array_get($data, 'email'))->firstOrFail();
+        $user->delete();
+        return [];
     }
 
-    protected function updateUser($email, $data)
+    protected function updateUser($data)
     {
-        $user = User::where('email', 'danny+user_1@weekendr.io')->firstOrFail();
+        $user = User::where('email', array_get($data, 'email'))->firstOrFail();
 
         return $user->update(['email' => array_get($data, 'merges.EMAIL'), 'airport_code' => array_get($data, 'merges.MMERGE5')]);
     }
