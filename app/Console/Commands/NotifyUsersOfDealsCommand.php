@@ -4,6 +4,7 @@ namespace Weekendr\Console\Commands;
 
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use League\CLImate\CLImate;
 use Mailchimp\MailchimpCampaigns;
 use Mailchimp\MailchimpLists;
 use Weekendr\External\Mailchimp;
@@ -30,6 +31,8 @@ class NotifyUsersOfDealsCommand extends Command
 
     protected $mailchimp_campaigns;
 
+    protected $climate;
+
     /**
      * Create a new command instance.
      *
@@ -41,6 +44,7 @@ class NotifyUsersOfDealsCommand extends Command
 
         $this->mailchimp_campaigns = new MailchimpCampaigns(env('MAILCHIMP_API_KEY'));
         $this->mailchimp_lists     = new MailchimpLists(env('MAILCHIMP_API_KEY'));
+        $this->climate             = new CLImate;
     }
 
     /**
@@ -50,9 +54,13 @@ class NotifyUsersOfDealsCommand extends Command
      */
     public function handle()
     {
-        return $this->getUsersWithFlightDeals()->each(function ($users) {
+        $this->climate->out('Start Notifying Users');
+
+        $this->getUsersWithFlightDeals()->each(function ($users) {
             $this->sendEmail($users);
         });
+
+        $this->climate->out('Finish Notifying Users');
     }
 
     /**
