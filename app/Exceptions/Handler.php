@@ -2,6 +2,7 @@
 
 namespace Weekendr\Exceptions;
 
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
@@ -38,6 +39,7 @@ class Handler extends ExceptionHandler
             app('sentry')->captureException($exception);
         }
 
+        parent::report(new Exception(Carbon::now()->toDateTimeString()));
         parent::report($exception);
     }
 
