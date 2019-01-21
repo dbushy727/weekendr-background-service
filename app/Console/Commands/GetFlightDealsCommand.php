@@ -25,7 +25,7 @@ class GetFlightDealsCommand extends Command
      */
     protected $description = 'Hit the Skyscanner API and get flight deals';
 
-    protected $safeguard = 20;
+    protected $safeguard = 30;
     protected $error_counter = 1;
     protected $climate;
 
@@ -111,7 +111,9 @@ class GetFlightDealsCommand extends Command
     {
         try {
             $flight_deals = $skyscanner->getResults($this->friday(), $this->sunday(), $airport);
-            foreach ($flight_deals as $deal) {
+            $flight_deals2 = $skyscanner->getResults($this->friday()->next(5), $this->sunday()->next(0), $airport);
+
+            foreach ($flight_deals->merge($flight_deals2) as $deal) {
                 $flight_deal = $this->createFlightDeal($deal, $airport);
                 $this->attachDealToUsers($flight_deal, $airport);
             }
