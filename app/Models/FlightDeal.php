@@ -25,4 +25,41 @@ class FlightDeal extends Model
     ];
 
     protected $dates = ['departure_date', 'return_date', 'created_at', 'updated_at'];
+
+    public function isThisWeekend()
+    {
+        return $this->departure_date->isSameDay($this->friday());
+    }
+
+    public function getLinkAttribute($value)
+    {
+        $url = 'https://www.skyscanner.com/transport/flights/%s/%s/%s/%s/?adults=1&children=0&adultsv2=1&childrenv2=&infants=0&cabinclass=economy&rtn=1&preferdirects=true&outboundaltsenabled=false&inboundaltsenabled=false&ref=home#results';
+
+        $replacements = [
+            $this->departure_origin,
+            $this->departure_destination,
+            $this->departure_date->format('ymd'),
+            $this->return_date->format('ymd'),
+        ];
+
+        return sprintf($url, ...$replacements);
+    }
+
+    public function getCarriersAttribute($value)
+    {
+        return collect([$this->departure_carrier, $this->return_carrier])
+            ->unique()
+            ->implode('/');
+    }
+
+    public function friday()
+    {
+        $now = Carbon::now();
+
+        if ($now->isFriday()) {
+            return $now;
+        }
+
+        return $now->next(5);
+    }
 }

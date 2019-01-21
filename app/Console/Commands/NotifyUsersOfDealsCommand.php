@@ -80,6 +80,12 @@ class NotifyUsersOfDealsCommand extends Command
             })->get()->groupBy('airport_code');
     }
 
+    /**
+     * Create campaign and send email to users
+     *
+     * @param  Collection $users
+     * @return
+     */
     public function sendEmail($users)
     {
         $campaign = $this->createNewCampaign($users);
@@ -88,6 +94,13 @@ class NotifyUsersOfDealsCommand extends Command
         return $this->send($users, $campaign);
     }
 
+    /**
+     * Send mail campaign
+     *
+     * @param  Collection $users
+     * @param  [type] $campaign [description]
+     * @return [type]           [description]
+     */
     public function send($users, $campaign)
     {
         $this->mailchimp_campaigns->send($campaign->id);
@@ -115,9 +128,30 @@ class NotifyUsersOfDealsCommand extends Command
         return $this->mailchimp_campaigns->addCampaign('regular', $recipients, $settings);
     }
 
+    /**
+     * Choose appropriate view based on flight deals and return view content with plugged in data
+     *
+     * @param  Collection $flight_deals
+     * @return string
+     */
+    public function createView($flight_deals)
+    {
+        if ($flight_deals->count() > 1) {
+            return view('emails.multi-flight-email', [
+                'flight_deals' => $flight_deals,
+                'subject'      => $this->createSubjectLine($flight_deals),
+            ])->render();
+        }
+
+        return view('emails.single-flight-email', [
+            'flight_deal' => $flight_deals->first(),
+            'subject'     => $this->createSubjectLine($flight_deals),
+        ])->render();
+    }
+
     public function setCampaignContent($campaign, $flight_deals)
     {
-        $html = view('emails.campaign', ['flight_deals' => $this->formatDeals($flight_deals)])->render();
+        $html = $this->createView($flight_deals);
 
         return $this->mailchimp_campaigns->setCampaignContent($campaign->id, ['html' => preg_replace("/\r|\n|\t/", "", $html)]);
     }
@@ -133,12 +167,50 @@ class NotifyUsersOfDealsCommand extends Command
         ];
     }
 
-    public function settings($airport, $flight_deals)
+    public function multipleFlightDealsSubject($flight_deals)
     {
         $cheapest_price = $flight_deals->sortBy('price')->first()->price / 100;
 
+        if ($flight_deals->unique('departure_date')->count() == 1) {
+            $which_weekend  = $flight_deals->first()->isThisWeekend() ? 'this' : 'next';
+            return sprintf("We found flights as low as $%s for %s weekend", $cheapest_price, $which_weekend);
+        }
+
+        return sprintf("We found some flights starting at $%s for the next two weekends", $cheapest_price);
+    }
+
+    /**
+     * Construct subject line for a single flight deal
+     *
+     * @param  FlightDeal $flight_deal
+     * @return string
+     */
+    public function singleFlightDealSubject($flight_deal)
+    {
+        $price = $flight_deal->price / 100;
+        $which_weekend = $flight_deal->isThisWeekend() ? 'this upcoming' : 'next';
+
+        return sprintf("($%s) %s for %s weekend", $price, $flight_deal->destination_city, $which_weekend);
+    }
+
+    /**
+     * Create a subject line based on the flight deals presented
+     * @param  Collection $flight_deals
+     * @return string
+     */
+    public function createSubjectLine($flight_deals)
+    {
+        if ($flight_deals->count() > 1) {
+            return $this->multipleFlightDealsSubject($flight_deals);
+        }
+
+        return $this->singleFlightDealSubject($flight_deals->first());
+    }
+
+    public function settings($airport, $flight_deals)
+    {
         return [
-            'subject_line' => $airport . ' We found flights as low as $'.$cheapest_price. ' for this weekend',
+            'subject_line' => $this->createSubjectLine($flight_deals),
             'title'        => sprintf("[%s] %s", Carbon::now()->toDatetimeString(), $airport),
             'from_name'    => 'Weekendr',
             'reply_to'     => 'no-reply@weekendr.io',
@@ -159,37 +231,5 @@ class NotifyUsersOfDealsCommand extends Command
         return $this->mailchimp_lists->addSegment($list->id, $name, [
             'static_segment' => $users->pluck('email')->toArray(),
         ]);
-    }
-
-    /**
-     * Display flight deal nicely
-     *
-     * @param  Collection $flight_deals
-     * @return Collection
-     */
-    public function formatDeals($flight_deals)
-    {
-        return $flight_deals->map(function ($flight_deal) {
-            $carriers = collect([$flight_deal->departure_carrier, $flight_deal->return_carrier])
-                ->unique()
-                ->implode('/');
-            $flight_deal->text = sprintf("($%s) %s on %s", $flight_deal->price / 100, $flight_deal->destination_city, $carriers);
-            $flight_deal->link = $this->generateFlightLink($flight_deal);
-
-            return $flight_deal;
-        });
-    }
-
-    public function generateFlightLink(FlightDeal $flight_deal)
-    {
-        $url = 'https://www.skyscanner.com/transport/flights/%s/%s/%s/%s/?adults=1&children=0&adultsv2=1&childrenv2=&infants=0&cabinclass=economy&rtn=1&preferdirects=true&outboundaltsenabled=false&inboundaltsenabled=false&ref=home#results';
-        $replacements = [
-            $flight_deal->departure_origin,
-            $flight_deal->departure_destination,
-            $flight_deal->departure_date->format('ymd'),
-            $flight_deal->return_date->format('ymd')
-        ];
-
-        return sprintf($url, ...$replacements);
     }
 }
