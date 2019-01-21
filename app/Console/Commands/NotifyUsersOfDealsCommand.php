@@ -158,7 +158,7 @@ class NotifyUsersOfDealsCommand extends Command
 
     public function recipients($users)
     {
-        $list    = $this->getList('Internal List');
+        $list    = $this->getList(env('MAILCHIMP_LIST'));
         $segment = $this->createSegment($list, $users);
 
         return [

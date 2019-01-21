@@ -233,6 +233,7 @@
        @tab Header
        @section Header Style
        @tip Set the background color and borders for your email's header area.
+       TODO: add header images to mailchimp and randomize which photo gets shown here;
        */
               #templateHeader{
                      /*@editable*/background-color:#ffffff;
