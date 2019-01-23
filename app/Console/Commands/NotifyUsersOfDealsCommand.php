@@ -170,7 +170,6 @@ class NotifyUsersOfDealsCommand extends Command
     public function multipleFlightDealsSubject($flight_deals)
     {
         $cheapest_price = $flight_deals->sortBy('price')->first()->price / 100;
-
         if ($flight_deals->unique('departure_date')->count() == 1) {
             $which_weekend  = $flight_deals->first()->isThisWeekend() ? 'this' : 'next';
             return sprintf("We found flights as low as $%s for %s weekend", $cheapest_price, $which_weekend);

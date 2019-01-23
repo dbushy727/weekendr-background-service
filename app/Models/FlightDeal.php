@@ -2,6 +2,7 @@
 
 namespace Weekendr\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class FlightDeal extends Model
