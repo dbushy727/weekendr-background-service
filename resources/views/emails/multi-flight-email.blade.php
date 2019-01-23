@@ -701,7 +701,7 @@
                                                         <tr>
                                                             <td valign="top" class="mcnTextContent" style="padding-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">
                                                                 @if($flight_deals->unique('departure_date')->count() == 1)
-                                                                    <h3 style="text-align: center;">Got any plans {{ $flight_deals->first()->isThisWeekend() ? 'this' : 'next '}} weekend? We found some places you can go.</h3>
+                                                                    <h3 style="text-align: center;">Got any plans {{ $flight_deal->isThisWeekend() ? 'this' : 'next '}} weekend? We found some places you can go.</h3>
                                                                 @else
                                                                     <h3 style="text-align: center;">Got any weekend plans for these next two weeks? We found some places you can go.</h3>
                                                                 @endif
@@ -868,7 +868,7 @@
                                                                                         <tr>
                                                                                             <td id="m_1837077742184746242text_div76662" style="text-align: left;" valign="top">If you booked something with us, please let us know by hitting reply!<br>
                                                                                                 <br>
-                                                                                                Save Travels,<br>
+                                                                                                Safe Travels,<br>
                                                                                                 Danny from Weekendr
                                                                                             </td>
                                                                                         </tr>
@@ -915,7 +915,7 @@
                                                     <tbody>
                                                         <tr>
                                                             <td align="center" valign="middle" class="mcnButtonContent" style="font-family: Arial; font-size: 16px; padding: 15px;">
-                                                                <a class="mcnButton " title="Weekendr Travel Tips" href="https://weekendr.io" target="_blank" style="font-weight: bold;letter-spacing: normal;line-height: 100%;text-align: center;text-decoration: none;color: #FFFFFF;">Check out our Travel Tips</a>
+                                                                <a class="mcnButton " title="Weekendr Travel Tips" href="https://weekendr.io/travel-tips/" target="_blank" style="font-weight: bold;letter-spacing: normal;line-height: 100%;text-align: center;text-decoration: none;color: #FFFFFF;">Check out our Travel Tips</a>
                                                             </td>
                                                         </tr>
                                                     </tbody>

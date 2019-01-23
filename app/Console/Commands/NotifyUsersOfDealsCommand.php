@@ -137,13 +137,13 @@ class NotifyUsersOfDealsCommand extends Command
     public function createView($flight_deals)
     {
         if ($flight_deals->count() > 1) {
-            return view('emails.multi-flight-email', [
+            return view('emails.multi-flight-email-2', [
                 'flight_deals' => $flight_deals,
                 'subject'      => $this->createSubjectLine($flight_deals),
             ])->render();
         }
 
-        return view('emails.single-flight-email', [
+        return view('emails.single-flight-email-2', [
             'flight_deal' => $flight_deals->first(),
             'subject'     => $this->createSubjectLine($flight_deals),
         ])->render();
