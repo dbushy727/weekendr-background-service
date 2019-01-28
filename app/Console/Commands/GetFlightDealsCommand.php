@@ -109,11 +109,16 @@ class GetFlightDealsCommand extends Command
 
     public function createFlightDeals($skyscanner, $airport)
     {
+        // For some reason US-sky brings more results for US than Anywhere
         try {
-            $flight_deals = $skyscanner->getResults($this->friday(), $this->sunday(), $airport);
-            $flight_deals2 = $skyscanner->getResults($this->friday()->next(5), $this->sunday()->next(0), $airport);
+            $flight_deals_us         = $skyscanner->getResults($this->friday(), $this->sunday(), $airport, 'US-sky');
+            $flight_deals_us2        = $skyscanner->getResults($this->friday()->next(5), $this->sunday()->next(0), $airport, 'US-sky');
+            $flight_deals_worldwide  = $skyscanner->getResults($this->friday(), $this->sunday(), $airport, 'Anywhere');
+            $flight_deals_worldwide2 = $skyscanner->getResults($this->friday()->next(5), $this->sunday()->next(0), $airport, 'Anywhere');
 
-            foreach ($flight_deals->merge($flight_deals2) as $deal) {
+            $deals = $flight_deals_us->merge($flight_deals_us2)->merge($flight_deals_worldwide)->merge($flight_deals_worldwide2);
+
+            foreach ($deals as $deal) {
                 $flight_deal = $this->createFlightDeal($deal, $airport);
                 $this->attachDealToUsers($flight_deal, $airport);
             }

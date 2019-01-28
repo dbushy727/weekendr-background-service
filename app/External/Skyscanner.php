@@ -9,7 +9,7 @@ use GuzzleHttp\Psr7\Request;
 class Skyscanner
 {
     protected const BASE_URI = 'https://skyscanner-skyscanner-flight-search-v1.p.rapidapi.com/apiservices/browsequotes/v1.0';
-    public const LOCALE = 'en-US';
+    public const LOCALE      = 'en-US';
     public $request;
     public $response;
     public $data;
@@ -56,6 +56,7 @@ class Skyscanner
         if (!$this->request) {
             throw new \Exception('Cannot fetch data. Request is missing.');
         }
+
         $this->response = $this->api_client->send($this->request);
         $this->data     = json_decode((string) $this->response->getBody(), true);
 
