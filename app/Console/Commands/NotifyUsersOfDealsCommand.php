@@ -54,13 +54,13 @@ class NotifyUsersOfDealsCommand extends Command
      */
     public function handle()
     {
-        $this->climate->out('Start Notifying Users');
+        $this->climate->out(Carbon::now()->toDatetimeString() . ' Start Notifying Users');
 
         $this->getUsersWithFlightDeals()->each(function ($users) {
             $this->sendEmail($users);
         });
 
-        $this->climate->out('Finish Notifying Users');
+        $this->climate->out(Carbon::now()->toDatetimeString() . 'Finish Notifying Users');
     }
 
     /**
