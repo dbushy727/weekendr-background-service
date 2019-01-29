@@ -210,7 +210,7 @@ class NotifyUsersOfDealsCommand extends Command
         $price = $flight_deal->price / 100;
         $which_weekend = $flight_deal->isThisWeekend() ? 'this upcoming' : 'next';
 
-        return sprintf("NEW ($%s) %s for %s weekend", $price, $flight_deal->destination_city, $which_weekend);
+        return sprintf("($%s) %s for %s weekend", $price, $flight_deal->destination_city, $which_weekend);
     }
 
     /**
