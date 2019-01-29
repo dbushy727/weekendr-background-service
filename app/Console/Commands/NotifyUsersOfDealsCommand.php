@@ -193,10 +193,10 @@ class NotifyUsersOfDealsCommand extends Command
 
         if ($all_flight_deals->unique('departure_date')->count() == 1) {
             $which_weekend  = $all_flight_deals->first()->isThisWeekend() ? 'this' : 'next';
-            return sprintf("NEW We found flights as low as $%s for %s weekend", $cheapest_price, $which_weekend);
+            return sprintf("We found flights as low as $%s for %s weekend", $cheapest_price, $which_weekend);
         }
 
-        return sprintf("NEW We found some flights starting at $%s for the next two weekends", $cheapest_price);
+        return sprintf("We found some flights starting at $%s for the next two weekends", $cheapest_price);
     }
 
     /**
