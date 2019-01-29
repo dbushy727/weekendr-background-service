@@ -521,8 +521,8 @@
                                                                             <tbody>
                                                                                 <tr>
                                                                                     <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #111111;font-family: Georgia;font-size: 16px;line-height: 150%;text-align: left;">
-                                                                                        @if($flight_deals->unique('departure_date')->count() == 1)
-                                                                                        <h3 style="text-align: center;">Got any plans {{ $flight_deals->first()->isThisWeekend() ? 'this' : 'next '}} weekend? We found some places you can go.</h3>
+                                                                                        @if($all_flight_deals->unique('departure_date')->count() == 1)
+                                                                                        <h3 style="text-align: center;">Got any plans {{ $all_flight_deals->first()->isThisWeekend() ? 'this' : 'next '}} weekend? We found some places you can go.</h3>
                                                                                         @else
                                                                                         <h3 style="text-align: center;">Got any weekend plans for these next two weeks? We found some places you can go.</h3>
                                                                                         @endif
@@ -541,20 +541,8 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
-                                            {{-- <table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnCodeBlock" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
-                                                <tbody class="mcnTextBlockOuter">
-                                                    <tr>
-                                                        <td valign="top" class="mcnTextBlockInner" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
-                                                            <div class="mcnTextContent" style="word-break: break-word;color: #111111;font-family: Georgia;font-size: 16px;line-height: 150%;text-align: left;">
-                                                                @foreach($flight_deals as $flight_deal)
-                                                                <div><a href="{{ $flight_deal->link }}">{{ $flight_deal->text }}</a></div>
-                                                                @endforeach
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table> --}}
-                                            @foreach($flight_deals as $flight_deal)
+
+                                            @foreach($destinations as $destination_city => $flight_deals)
                                             <table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnBoxedTextBlock" style="min-width:100%;">
                                                 <!--[if gte mso 9]> <table align="center" border="0" cellspacing="0" cellpadding="0" width="100%"> <![endif]-->
                                                 <tbody class="mcnBoxedTextBlockOuter">
@@ -569,13 +557,17 @@
                                                                                 <tbody>
                                                                                     <tr>
                                                                                         <td valign="top" class="mcnTextContent" style="padding: 18px;color: #222222;font-family: Helvetica;font-size: 14px;font-weight: normal;text-align: center;">
-                                                                                            <h2 class="null" style="text-align: left;">{{ $flight_deal->destination_city }}</h2>
+                                                                                            <h2 class="null" style="text-align: left;">{{ $destination_city }}</h2>
+                                                                                            @foreach($flight_deals as $flight_deal)
                                                                                             <div style="text-align: left;">
                                                                                                 Price: ${{ $flight_deal->price / 100 }}<br>
                                                                                                 Date: {{ $flight_deal->departure_date->toFormattedDateString() }} - {{ $flight_deal->return_date->toFormattedDateString() }}<br>
                                                                                                 Destination: ({{ $flight_deal->departure_destination }}) {{ $flight_deal->destination_city }}<br>
                                                                                                 Departure Airport: {{ $flight_deal->departure_origin }}<br>
-                                                                                            Carrier: {{ $flight_deal->carriers }}</div>
+                                                                                                Carrier: {{ $flight_deal->carriers }}
+                                                                                            </div>
+                                                                                            <br>
+                                                                                            @endforeach
                                                                                         </td>
                                                                                     </tr>
                                                                                 </tbody>
@@ -593,15 +585,17 @@
                                                 <tbody class="mcnButtonBlockOuter">
                                                     <tr>
                                                         <td style="padding-top:0; padding-right:18px; padding-bottom:18px; padding-left:18px;" valign="top" align="center" class="mcnButtonBlockInner">
-                                                            <table border="0" cellpadding="0" cellspacing="0" class="mcnButtonContentContainer" style="border-collapse: separate !important;border-radius: 3px;background-color: #2BAADF;">
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td align="center" valign="middle" class="mcnButtonContent" style="font-family: Arial; font-size: 16px; padding: 15px;">
-                                                                            <a class="mcnButton " title="Book Flight" href="{{ $flight_deal->link }}" target="_blank" style="font-weight: bold;letter-spacing: normal;line-height: 100%;text-align: center;text-decoration: none;color: #FFFFFF;">Book Flight</a>
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
+                                                            @foreach($flight_deals as $flight_deal)
+                                                                <table border="0" cellpadding="0" cellspacing="0" class="mcnButtonContentContainer" style="border-collapse: separate !important;border-radius: 3px;background-color: #2BAADF; display: inline-block;">
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td align="center" valign="middle" class="mcnButtonContent" style="font-family: Arial; font-size: 16px; padding: 15px;">
+                                                                                <a class="mcnButton " title="Book Flight for ${{ $flight_deal->price / 100 }}" href="{{ $flight_deal->link }}" target="_blank" style="font-weight: bold;letter-spacing: normal;line-height: 100%;text-align: center;text-decoration: none;color: #FFFFFF;">Book Flight for ${{ $flight_deal->price / 100 }}</a>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            @endforeach
                                                         </td>
                                                     </tr>
                                                 </tbody>

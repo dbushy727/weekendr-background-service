@@ -57,10 +57,16 @@ class NotifyUsersOfDealsCommand extends Command
         $this->climate->out(Carbon::now()->toDatetimeString() . ' Start Notifying Users');
 
         $this->getUsersWithFlightDeals()->each(function ($users) {
-            $this->sendEmail($users);
+            $users->first()
+                ->flight_deals
+                ->groupBy('destination_city')
+                ->chunk(5)
+                ->each(function ($destinations) use ($users) {
+                    $this->sendEmail($users, $destinations);
+                });
         });
 
-        $this->climate->out(Carbon::now()->toDatetimeString() . 'Finish Notifying Users');
+        $this->climate->out(Carbon::now()->toDatetimeString() . ' Finish Notifying Users');
     }
 
     /**
@@ -86,10 +92,10 @@ class NotifyUsersOfDealsCommand extends Command
      * @param  Collection $users
      * @return
      */
-    public function sendEmail($users)
+    public function sendEmail($users, $destinations)
     {
-        $campaign = $this->createNewCampaign($users);
-        $this->setCampaignContent($campaign, $users->first()->flight_deals);
+        $campaign = $this->createNewCampaign($users, $destinations);
+        $this->setCampaignContent($campaign, $destinations);
 
         return $this->send($users, $campaign);
     }
@@ -120,10 +126,10 @@ class NotifyUsersOfDealsCommand extends Command
         });
     }
 
-    public function createNewCampaign($users)
+    public function createNewCampaign($users, $destinations)
     {
         $recipients = $this->recipients($users);
-        $settings   = $this->settings($users->first()->airport_code, $users->first()->flight_deals);
+        $settings   = $this->settings($users->first()->airport_code, $destinations);
 
         return $this->mailchimp_campaigns->addCampaign('regular', $recipients, $settings);
     }
@@ -134,24 +140,26 @@ class NotifyUsersOfDealsCommand extends Command
      * @param  Collection $flight_deals
      * @return string
      */
-    public function createView($flight_deals)
+    public function createView($destinations)
     {
-        if ($flight_deals->count() > 1) {
-            return view('emails.multi-flight-email-2', [
-                'flight_deals' => $flight_deals,
-                'subject'      => $this->createSubjectLine($flight_deals),
+        // Only one destination and that destination only has one flight deal
+        if ($destinations->count() == 1 && $destinations->first()->count() == 1) {
+            return view('emails.single-flight-email-minify', [
+                'flight_deal' => $destinations->first()->first(),
+                'subject'     => $this->createSubjectLine($destinations),
             ])->render();
         }
 
-        return view('emails.single-flight-email-2', [
-            'flight_deal' => $flight_deals->first(),
-            'subject'     => $this->createSubjectLine($flight_deals),
+        return view('emails.multi-flight-email-minify', [
+            'destinations'     => $destinations,
+            'all_flight_deals' => $this->allFlightDealsFromDestinations($destinations),
+            'subject'          => $this->createSubjectLine($destinations),
         ])->render();
     }
 
-    public function setCampaignContent($campaign, $flight_deals)
+    public function setCampaignContent($campaign, $destinations)
     {
-        $html = $this->createView($flight_deals);
+        $html = $this->createView($destinations);
 
         return $this->mailchimp_campaigns->setCampaignContent($campaign->id, ['html' => preg_replace("/\r|\n|\t/", "", $html)]);
     }
@@ -167,15 +175,28 @@ class NotifyUsersOfDealsCommand extends Command
         ];
     }
 
-    public function multipleFlightDealsSubject($flight_deals)
+    public function allFlightDealsFromDestinations($destinations)
     {
-        $cheapest_price = $flight_deals->sortBy('price')->first()->price / 100;
-        if ($flight_deals->unique('departure_date')->count() == 1) {
-            $which_weekend  = $flight_deals->first()->isThisWeekend() ? 'this' : 'next';
-            return sprintf("We found flights as low as $%s for %s weekend", $cheapest_price, $which_weekend);
+        return $destinations->flatMap(function ($flight_deals, $destination) {
+            return $flight_deals;
+        });
+    }
+    public function getCheapestFlightPrice($destinations)
+    {
+        return $this->allFlightDealsFromDestinations($destinations)->sortBy('price')->first()->price / 100;
+    }
+
+    public function multipleFlightDealsSubject($destinations)
+    {
+        $cheapest_price = $this->getCheapestFlightPrice($destinations);
+        $all_flight_deals = $this->allFlightDealsFromDestinations($destinations);
+
+        if ($all_flight_deals->unique('departure_date')->count() == 1) {
+            $which_weekend  = $all_flight_deals->first()->isThisWeekend() ? 'this' : 'next';
+            return sprintf("NEW We found flights as low as $%s for %s weekend", $cheapest_price, $which_weekend);
         }
 
-        return sprintf("We found some flights starting at $%s for the next two weekends", $cheapest_price);
+        return sprintf("NEW We found some flights starting at $%s for the next two weekends", $cheapest_price);
     }
 
     /**
@@ -189,7 +210,7 @@ class NotifyUsersOfDealsCommand extends Command
         $price = $flight_deal->price / 100;
         $which_weekend = $flight_deal->isThisWeekend() ? 'this upcoming' : 'next';
 
-        return sprintf("($%s) %s for %s weekend", $price, $flight_deal->destination_city, $which_weekend);
+        return sprintf("NEW ($%s) %s for %s weekend", $price, $flight_deal->destination_city, $which_weekend);
     }
 
     /**
@@ -197,19 +218,20 @@ class NotifyUsersOfDealsCommand extends Command
      * @param  Collection $flight_deals
      * @return string
      */
-    public function createSubjectLine($flight_deals)
+    public function createSubjectLine($destinations)
     {
-        if ($flight_deals->count() > 1) {
-            return $this->multipleFlightDealsSubject($flight_deals);
+        // Only one destination and that destination only has one flight deal
+        if ($destinations->count() == 1 && $destinations->first()->count() == 1) {
+            return $this->singleFlightDealSubject($destinations->first()->first());
         }
 
-        return $this->singleFlightDealSubject($flight_deals->first());
+        return $this->multipleFlightDealsSubject($destinations);
     }
 
-    public function settings($airport, $flight_deals)
+    public function settings($airport, $destinations)
     {
         return [
-            'subject_line' => $this->createSubjectLine($flight_deals),
+            'subject_line' => $this->createSubjectLine($destinations),
             'title'        => sprintf("[%s] %s", Carbon::now()->toDatetimeString(), $airport),
             'from_name'    => 'Weekendr',
             'reply_to'     => 'no-reply@weekendr.io',
