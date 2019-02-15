@@ -30,7 +30,7 @@ class Skyscanner
     ) {
         $this->createRequest($outboundDate, $inboundDate, $origin, $destination, $local_country, $local_currency)
             ->fetch()
-            ->filter()
+            ->filter(300)
             ->map();
 
         return $this->results;
