@@ -28,12 +28,10 @@ class Skyscanner
         $local_country = 'US',
         $local_currency = 'USD'
     ) {
-        $this->createRequest($outboundDate, $inboundDate, $origin, $destination, $local_country, $local_currency)
+        return $this->createRequest($outboundDate, $inboundDate, $origin, $destination, $local_country, $local_currency)
             ->fetch()
             ->filter(300)
             ->map();
-
-        return $this->results;
     }
 
     protected function createRequest(
@@ -105,11 +103,7 @@ class Skyscanner
 
     protected function map()
     {
-        if (!$this->results || $this->results->isEmpty()) {
-            throw new \Exception('No results');
-        }
-
-        $this->results = $this->results->map(function ($quote, $key) {
+        return $this->results->map(function ($quote, $key) {
             $quote['OutboundLeg']['Origin'] = $this->getPlace($quote['OutboundLeg']['OriginId']);
             $quote['OutboundLeg']['Destination'] = $this->getPlace($quote['OutboundLeg']['DestinationId']);
             $quote['OutboundLeg']['Carrier'] = $this->getCarrier(array_first($quote['OutboundLeg']['CarrierIds']));
@@ -120,7 +114,5 @@ class Skyscanner
 
             return $quote;
         });
-
-        return $this;
     }
 }
