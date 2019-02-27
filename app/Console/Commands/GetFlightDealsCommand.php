@@ -8,6 +8,7 @@ use League\CLImate\CLImate;
 use Weekendr\External\Skyscanner;
 use Weekendr\Models\FlightDeal;
 use Weekendr\Models\User;
+use Validator;
 
 class GetFlightDealsCommand extends Command
 {
@@ -74,8 +75,8 @@ class GetFlightDealsCommand extends Command
             'departure_date'        => Carbon::parse(array_get($deal, 'OutboundLeg.DepartureDate')),
             'return_date'           => Carbon::parse(array_get($deal, 'InboundLeg.DepartureDate')),
         ])->firstOr(function () use ($deal, $airport) {
-            $this->climate->green("Found a flight deal for {$airport}");
-            \Log::info(var_dump($deal));
+            $this->climate->green("Found a flight deal for {$airport} ". array_get($deal, 'OutboundLeg.Origin.IataCode') . ' ' .  array_get($deal, 'OutboundLeg.Destination.IataCode'));
+
             return FlightDeal::create([
                 'departure_origin'      => array_get($deal, 'OutboundLeg.Origin.IataCode'),
                 'departure_destination' => array_get($deal, 'OutboundLeg.Destination.IataCode'),
@@ -112,6 +113,24 @@ class GetFlightDealsCommand extends Command
         return $this->friday()->next(0);
     }
 
+    public function failsFlightDealValidation($deal)
+    {
+        $validator = Validator::make($deal, [
+            'OutboundLeg.Origin.IataCode'      => 'required',
+            'OutboundLeg.Destination.IataCode' => 'required',
+            'OutboundLeg.DepartureDate'        => 'required',
+            'InboundLeg.DepartureDate'         => 'required',
+            'OutboundLeg.Destination.CityName' => 'required',
+            'OutboundLeg.Carrier.Name'         => 'required',
+            'InboundLeg.Origin.IataCode'       => 'required',
+            'InboundLeg.Destination.IataCode'  => 'required',
+            'InboundLeg.Carrier.Name'          => 'required',
+            'MinPrice'                         => 'required',
+        ]);
+
+        return $validator->fails();
+    }
+
     public function createFlightDeals($skyscanner, $airport)
     {
         // For some reason US-sky brings more results for US than Anywhere
@@ -124,8 +143,12 @@ class GetFlightDealsCommand extends Command
             $deals = $flight_deals_us->merge($flight_deals_us2)->merge($flight_deals_worldwide)->merge($flight_deals_worldwide2);
 
             foreach ($deals as $deal) {
+                if ($this->failsFlightDealValidation($deal)) {
+                    continue;
+                }
+
                 $flight_deal = $this->createFlightDeal($deal, $airport);
-                $this->attachDealToUsers($flight_deal, $airport);
+                $this->attachDealToUsers($flight_deal, $airport, $deal);
             }
         } catch (\Exception $e) {
             // No issues here, just couldnt find deals for this airport
@@ -150,9 +173,15 @@ class GetFlightDealsCommand extends Command
         return $this->createFlightDeals($skyscanner, $airport);
     }
 
-    public function attachDealToUsers($flight_deal, $airport)
+    public function attachDealToUsers($flight_deal, $airport, $original_deal_data)
     {
-        return User::where('airport_code', $airport)->get()->each(function ($user) use ($flight_deal) {
+        if ($flight_deal->created_at->lessThan(Carbon::now()->subHour())) {
+            return;
+        }
+
+        $airport_codes = collect([$airport, sprintf("%s-sky", $flight_deal->departure_origin), sprintf("%s-sky", array_get($original_deal_data, 'OutboundLeg.Origin.CityId'))])->unique();
+
+        User::whereIn('airport_code', $airport_codes)->get()->map(function ($user) use ($flight_deal) {
             $user->flight_deals->find($flight_deal->id) ?? $user->flight_deals()->attach($flight_deal->id);
         });
     }
