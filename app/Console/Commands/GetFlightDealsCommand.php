@@ -55,7 +55,12 @@ class GetFlightDealsCommand extends Command
             $this->error_counter = 1;
 
             $this->climate->out("[{$now}] Fetching deals for airport: {$airport}");
-            $this->createFlightDeals($skyscanner, $airport);
+
+            try {
+                $this->createFlightDeals($skyscanner, $airport);
+            } catch (\Exception $e) {
+                \Log::error($e->getMessage());
+            }
         });
 
         $this->climate->green(Carbon::now()->toDatetimeString() . 'Finished Getting Flights');
