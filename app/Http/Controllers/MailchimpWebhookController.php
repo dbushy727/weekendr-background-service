@@ -30,6 +30,10 @@ class MailchimpWebhookController extends Controller
                 return $this->updateUser(array_get($data, 'data'));
                 break;
 
+            case 'campaign':
+                // just letting me know that the campaign was sent. nothing to do here
+                break;
+
             default:
                 throw new \Exception('Mailchimp Webhook type not supported: ' . $data);
                 break;
