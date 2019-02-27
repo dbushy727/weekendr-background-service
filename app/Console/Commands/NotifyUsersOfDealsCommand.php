@@ -80,9 +80,11 @@ class NotifyUsersOfDealsCommand extends Command
             'flight_deals' => function ($q) {
                 $q->whereNull('notified_at');
                 $q->whereDate('departure_date', '>=', Carbon::now()->toDateString());
+                $q->where('created_at', '>=', Carbon::now()->subMinute(30));
             }])->whereHas('flight_deals', function ($q) {
                 $q->whereNull('notified_at');
                 $q->whereDate('departure_date', '>=', Carbon::now()->toDateString());
+                $q->where('created_at', '>=', Carbon::now()->subMinute(30));
             })->get()->groupBy('airport_code');
     }
 
