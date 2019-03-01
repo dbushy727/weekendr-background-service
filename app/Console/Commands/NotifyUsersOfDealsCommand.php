@@ -18,7 +18,7 @@ class NotifyUsersOfDealsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'custom:notify-users';
+    protected $signature = 'custom:notify-users {--frequency=}';
 
     /**
      * The console command description.
@@ -76,7 +76,7 @@ class NotifyUsersOfDealsCommand extends Command
      */
     public function getUsersWithFlightDeals()
     {
-        return User::with([
+        $users = User::where('frequency', $this->frequency())->with([
             'flight_deals' => function ($q) {
                 $q->whereNull('notified_at');
                 $q->whereDate('departure_date', '>=', Carbon::now()->toDateString());
@@ -84,6 +84,9 @@ class NotifyUsersOfDealsCommand extends Command
                 $q->whereNull('notified_at');
                 $q->whereDate('departure_date', '>=', Carbon::now()->toDateString());
             })->get()->groupBy('airport_code');
+
+        dd($users);
+        return $users;
     }
 
     /**
@@ -252,5 +255,10 @@ class NotifyUsersOfDealsCommand extends Command
         return $this->mailchimp_lists->addSegment($list->id, $name, [
             'static_segment' => $users->pluck('email')->toArray(),
         ]);
+    }
+
+    public function frequency()
+    {
+        return $this->option('frequency') ?? 'everyThirtyMinutes';
     }
 }

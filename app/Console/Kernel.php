@@ -25,11 +25,21 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('custom:get-flight-deals')
-            ->everyFifteenMinutes()
+            ->everyTenMinutes()
             ->appendOutputTo(storage_path('logs/get-flight-deals.log'));
 
-        $schedule->command('custom:notify-users')
-            ->everyFifteenMinutes()
+        $schedule->command('custom:notify-users --frequency=everyThirtyMinutes')
+            ->everyThirtyMinutes()
+            ->appendOutputTo(storage_path('logs/notify-users.log'));
+
+
+        // Schedule API only gives twice daily, so splitting up into two calls on dictated hours for 4 times daily
+        $schedule->command('custom:notify-users --frequency=fourTimesDaily')
+            ->twiceDaily(8, 12)
+            ->appendOutputTo(storage_path('logs/notify-users.log'));
+
+        $schedule->command('custom:notify-users --frequency=fourTimesDaily')
+            ->twiceDaily(16, 20)
             ->appendOutputTo(storage_path('logs/notify-users.log'));
     }
 
