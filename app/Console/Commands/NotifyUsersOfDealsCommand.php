@@ -59,8 +59,8 @@ class NotifyUsersOfDealsCommand extends Command
         $this->getUsersWithFlightDeals()->each(function ($users) {
             $users->first()
                 ->flight_deals
+                ->chunk(25)
                 ->groupBy('destination_city')
-                ->chunk(5)
                 ->each(function ($destinations) use ($users) {
                     $this->sendEmail($users, $destinations);
                 });
@@ -76,7 +76,7 @@ class NotifyUsersOfDealsCommand extends Command
      */
     public function getUsersWithFlightDeals()
     {
-        $users = User::where('frequency', $this->frequency())->with([
+        return User::where('frequency', $this->frequency())->with([
             'flight_deals' => function ($q) {
                 $q->whereNull('notified_at');
                 $q->whereDate('departure_date', '>=', Carbon::now()->toDateString());
@@ -84,9 +84,6 @@ class NotifyUsersOfDealsCommand extends Command
                 $q->whereNull('notified_at');
                 $q->whereDate('departure_date', '>=', Carbon::now()->toDateString());
             })->get()->groupBy('airport_code');
-
-        dd($users);
-        return $users;
     }
 
     /**
@@ -153,11 +150,22 @@ class NotifyUsersOfDealsCommand extends Command
             ])->render();
         }
 
-        return view('emails.multi-flight-email-minify', [
-            'destinations'     => $destinations,
-            'all_flight_deals' => $this->allFlightDealsFromDestinations($destinations),
-            'subject'          => $this->createSubjectLine($destinations),
-        ])->render();
+        if ($destinations->first()->count() < 6) {
+            return view('emails.multi-flight-email-minify', [
+                'destinations'     => $destinations,
+                'all_flight_deals' => $this->allFlightDealsFromDestinations($destinations),
+                'subject'          => $this->createSubjectLine($destinations),
+            ])->render();
+        }
+
+        return view('emails.too-many-flights-minify', [
+                'dates' => $this->allFlightDealsFromDestinations($destinations)->groupBy(function ($destination) {
+                    return sprintf("%s - %s", $destination->departure_date->format('l F j, Y'), $destination->return_date->format('l F j, Y'));
+                }),
+                'all_flight_deals' => $this->allFlightDealsFromDestinations($destinations),
+                'subject'          => $this->createSubjectLine($destinations),
+            ])->render();
+
     }
 
     public function setCampaignContent($campaign, $destinations)
