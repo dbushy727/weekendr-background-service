@@ -15,6 +15,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/flight-deals', 'FlightDealsController@index');
+Route::post('/flight-deals/{id}/approve', 'FlightDealsController@approve');
+
 Route::post('/mailchimp-webhook', 'MailchimpWebhookController@store');
 
 Route::get('/mailchimp-webhook', 'MailchimpWebhookController@index');

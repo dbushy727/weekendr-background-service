@@ -13,6 +13,7 @@ class FlightDeal extends Model
      * @var array
      */
     protected $fillable = [
+        'approved',
         'destination_city',
         'departure_origin',
         'departure_destination',
