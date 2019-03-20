@@ -24,10 +24,19 @@ class FlightDealsController extends Controller
     {
         $flight_deal = FlightDeal::findOrFail($id);
 
-        $flight_deal->update(['approved' => true]);
+        $flight_deal->update(['status' => 'Approved']);
         $this->flight_deals->attachToUsers($flight_deal);
 
         return FlightDeal::with(['users'])->findOrFail($id);
+    }
+
+    public function reject($id)
+    {
+        $flight_deal = FlightDeal::findOrFail($id);
+
+        $flight_deal->update(['status' => 'Rejected']);
+
+        return FlightDeal::findOrFail($id);
     }
 
     public function approved()
@@ -35,8 +44,13 @@ class FlightDealsController extends Controller
         return FlightDeal::orderByDesc('id')->approved()->paginate(50);
     }
 
-    public function unapproved()
+    public function rejected()
     {
-        return FlightDeal::orderByDesc('id')->unapproved()->paginate(50);
+        return FlightDeal::orderByDesc('id')->rejected()->paginate(50);
+    }
+
+    public function pending()
+    {
+        return FlightDeal::orderByDesc('id')->pending()->paginate(50);
     }
 }

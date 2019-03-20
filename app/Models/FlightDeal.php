@@ -13,7 +13,7 @@ class FlightDeal extends Model
      * @var array
      */
     protected $fillable = [
-        'approved',
+        'status',
         'destination_city',
         'departure_origin',
         'departure_destination',
@@ -75,11 +75,16 @@ class FlightDeal extends Model
 
     public function scopeApproved($query)
     {
-        return $query->where('approved', 1);
+        return $query->where('status', 'Approved');
     }
 
-    public function scopeUnapproved($query)
+    public function scopePending($query)
     {
-        return $query->where('approved', 0);
+        return $query->where('status', 'Pending');
+    }
+
+    public function scopeRejected($query)
+    {
+        return $query->where('status', 'Rejected');
     }
 }

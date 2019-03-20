@@ -14,7 +14,7 @@ class AddApprovedColumnToFlightDeals extends Migration
     public function up()
     {
         Schema::table('flight_deals', function (Blueprint $table) {
-            $table->boolean('approved')->after('id')->default(false);
+            $table->enum('status', ['Pending', 'Approved', 'Rejected'])->after('return_carrier')->default('Pending');
         });
     }
 
@@ -26,7 +26,7 @@ class AddApprovedColumnToFlightDeals extends Migration
     public function down()
     {
         Schema::table('flight_deals', function (Blueprint $table) {
-            $table->dropColumn('approved');
+            $table->dropColumn('status');
         });
     }
 }

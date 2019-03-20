@@ -16,11 +16,13 @@ Route::get('/', function () {
 });
 
 Route::get('/admin', 'AdminController@index');
+Route::post('/admin/send-email', 'AdminController@sendEmail');
 
 Route::get('/flight-deals', 'FlightDealsController@index');
 Route::get('/flight-deals/approved', 'FlightDealsController@approved');
 Route::get('/flight-deals/unapproved', 'FlightDealsController@unapproved');
 Route::post('/flight-deals/{id}/approve', 'FlightDealsController@approve');
+Route::post('/flight-deals/{id}/reject', 'FlightDealsController@reject');
 
 Route::post('/mailchimp-webhook', 'MailchimpWebhookController@store');
 

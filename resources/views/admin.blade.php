@@ -7,57 +7,65 @@
     <meta name="description" content="">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Jekyll v3.8.5">
-    <title>Starter Template · Bootstrap</title>
+    <title>Weekendr · Admin</title>
+    <link rel='shortcut icon' type='image/x-icon' href='https://weekendr.io/images/logo.png' />
+
+
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <style>
+        .approved { background-color: green !important; }
+        .rejected { background-color: red !important; }
+    </style>
 </head>
 <body>
 
-
     <main role="main" class="container">
+        <div>{{ $flight_deals }}</div>
+        <br>
 
-        <div class="starter-template">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th scope="col">id</th>
-                        <th scope="col">Price</th>
-                        <th scope="col">Destination</th>
-                        <th scope="col">Origin</th>
-                        <th scope="col">Dates</th>
-                        <th scope="col">Link</th>
-                        <th scope="col">Approve</th>
-
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($flight_deals as $flight_deal)
-                    <tr>
-                        <th scope="row">{{ $flight_deal->id }}</th>
-                        <td>${{ $flight_deal->price / 100 }}</td>
-                        <td>{{ $flight_deal->destination_city }}</td>
-                        <td>{{ $flight_deal->departure_origin }}</td>
-                        <td>{{ $flight_deal->departure_date->toFormattedDateString() }} - {{ $flight_deal->return_date->toFormattedDateString() }}</td>
-                        <td>
-                            <a href="{{$flight_deal->link}}"><button class="btn btn-warning">View Flight</button></a>
-                        <td>
-                            @if($flight_deal->approved)
-                                <button class="btn btn-success" disabled>Approve</button>
-                            @else
-                                <button class="btn btn-success">Approve</button>
-                            @endif
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+        <div id="app">
+            <email-component></email-component>
+            <br>
+            <div class="starter-template">
+                @if($flight_deals->count() == 0)
+                    <h2 class="text-center">No Flight Deals</h2>
+                @else
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">Price</th>
+                                <th scope="col">Destination</th>
+                                <th scope="col">Origin</th>
+                                <th scope="col">Dates</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($flight_deals as $flight_deal)
+                            <tr>
+                                <td>${{ $flight_deal->price / 100 }}</td>
+                                <td>{{ $flight_deal->destination_city }}</td>
+                                <td>{{ $flight_deal->departure_origin }}</td>
+                                <td>{{ $flight_deal->departure_date->format('m/d/y') }} - {{ $flight_deal->return_date->format('m/d/y') }}</td>
+                                <td>
+                                    <a target="_BLANK" href="{{$flight_deal->link}}"><button class="btn btn-warning"><i class="fas fa-eye"></i></button></a>
+                                    <button class="btn btn-success" v-on:click="approve({{$flight_deal->id}}, $event)"><i class="fas fa-check"></i></button>
+                                    <button class="btn btn-danger" v-on:click="reject({{$flight_deal->id}}, $event)"><i class="fas fa-times"></i></button>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @endif
+            </div>
         </div>
 
+        <div>{{ $flight_deals }}</div>
     </main><!-- /.container -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script>window.jQuery || document.write('<script src="/docs/4.3/assets/js/vendor/jquery-slim.min.js"><\/script>')</script><script src="/docs/4.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
+
+    <script src="/js/app.js"></script>
 </body>
 </html>
