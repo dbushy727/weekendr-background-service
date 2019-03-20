@@ -24,9 +24,12 @@ class FlightDeal extends Model
         'return_carrier',
         'return_date',
         'price',
+        'link',
     ];
 
     protected $dates = ['departure_date', 'return_date', 'created_at', 'updated_at'];
+
+    protected $appends = ['link'];
 
     public function isThisWeekend()
     {
@@ -63,5 +66,20 @@ class FlightDeal extends Model
         }
 
         return $now->next(5);
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_flight_deals')->withTimestamps()->withPivot(['notified_at']);
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('approved', 1);
+    }
+
+    public function scopeUnapproved($query)
+    {
+        return $query->where('approved', 0);
     }
 }

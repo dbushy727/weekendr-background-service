@@ -34,6 +34,15 @@ class Skyscanner
             ->map();
     }
 
+    public function searchPlace($place)
+    {
+        $url           = sprintf("https://skyscanner-skyscanner-flight-search-v1.p.rapidapi.com/apiservices/autosuggest/v1.0/US/USD/en-US/?query=%s", $place);
+        $headers       = ['X-RapidAPI-Key' => env('SKYSCANNER_API_KEY')];
+        $this->request = new Request('GET', $url, $headers);
+
+        return collect($this->fetch()->data['Places']);
+    }
+
     protected function createRequest(
         Carbon $outboundDate,
         Carbon $inboundDate,

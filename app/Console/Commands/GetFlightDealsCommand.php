@@ -5,10 +5,11 @@ namespace Weekendr\Console\Commands;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use League\CLImate\CLImate;
+use Validator;
 use Weekendr\External\Skyscanner;
+use Weekendr\External\Slack;
 use Weekendr\Models\FlightDeal;
 use Weekendr\Models\User;
-use Validator;
 
 class GetFlightDealsCommand extends Command
 {
@@ -28,6 +29,8 @@ class GetFlightDealsCommand extends Command
 
     protected $safeguard = 30;
     protected $error_counter = 1;
+    protected $deals_counter = 0;
+    protected $slack;
     protected $climate;
 
     /**
@@ -35,10 +38,12 @@ class GetFlightDealsCommand extends Command
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(Slack $slack, CLImate $climate)
     {
         parent::__construct();
-        $this->climate = new CLImate;
+
+        $this->slack = $slack;
+        $this->climate = $climate;
     }
 
     /**
@@ -64,6 +69,10 @@ class GetFlightDealsCommand extends Command
             }
         });
 
+        if ($this->deals_counter > 0) {
+            $this->slack->notify();
+        }
+
         $this->climate->green(Carbon::now()->toDatetimeString() . 'Finished Getting Flights');
     }
 
@@ -76,6 +85,7 @@ class GetFlightDealsCommand extends Command
             'return_date'           => Carbon::parse(array_get($deal, 'InboundLeg.DepartureDate')),
         ])->firstOr(function () use ($deal, $airport) {
             $this->climate->green("Found a flight deal for {$airport} ". array_get($deal, 'OutboundLeg.Origin.IataCode') . ' ' .  array_get($deal, 'OutboundLeg.Destination.IataCode'));
+            $this->deals_counter++;
 
             return FlightDeal::create([
                 'departure_origin'      => array_get($deal, 'OutboundLeg.Origin.IataCode'),
@@ -148,7 +158,6 @@ class GetFlightDealsCommand extends Command
                 }
 
                 $flight_deal = $this->createFlightDeal($deal, $airport);
-                $this->attachDealToUsers($flight_deal, $airport, $deal);
             }
         } catch (\Exception $e) {
             // No issues here, just couldnt find deals for this airport
@@ -171,18 +180,5 @@ class GetFlightDealsCommand extends Command
     {
         sleep(2);
         return $this->createFlightDeals($skyscanner, $airport);
-    }
-
-    public function attachDealToUsers($flight_deal, $airport, $original_deal_data)
-    {
-        if ($flight_deal->created_at->lessThan(Carbon::now()->subHour())) {
-            return;
-        }
-
-        $airport_codes = collect([$airport, sprintf("%s-sky", $flight_deal->departure_origin), sprintf("%s-sky", array_get($original_deal_data, 'OutboundLeg.Origin.CityId'))])->unique();
-
-        User::whereIn('airport_code', $airport_codes)->get()->map(function ($user) use ($flight_deal) {
-            $user->flight_deals->find($flight_deal->id) ?? $user->flight_deals()->attach($flight_deal->id);
-        });
     }
 }
