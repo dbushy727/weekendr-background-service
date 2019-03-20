@@ -22,7 +22,7 @@
 </head>
 <body>
 
-    <main role="main" class="container">
+    <main role="main" class="container-fluid">
         <div>{{ $flight_deals }}</div>
         <br>
 
