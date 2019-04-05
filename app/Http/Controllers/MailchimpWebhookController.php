@@ -42,7 +42,7 @@ class MailchimpWebhookController extends Controller
 
     protected function addUser($data)
     {
-        return User::create(['email' => array_get($data, 'email'), 'airport_code' => array_get($data, 'merges.MMERGE5')]);
+        return User::create(['email' => array_get($data, 'email'), 'airport_code' => array_get($data, 'merges.AIRPORT')]);
     }
 
     protected function deleteUser($data)
