@@ -2,26 +2,39 @@
 
 namespace Weekendr\Http\Controllers;
 
+use Illuminate\Support\Facades\Artisan;
+use Weekendr\Console\Commands\NotifyUsersOfDealsCommand;
+use Weekendr\Models\Destination;
 use Weekendr\Models\FlightDeal;
 use Weekendr\Repos\FlightDealRepo;
 
 class AdminController
 {
+    protected $flight_deals;
+
+    public function __construct(FlightDealRepo $flight_deals)
+    {
+        $this->flight_deals = $flight_deals;
+    }
+
     public function index()
     {
-        $flight_deals = FlightDeal::pending()->orderByDesc('id')->paginate(50);
-
-        return view('admin', compact('flight_deals'));
+        return view('backend.admin');
     }
 
     public function sendEmail()
     {
         try {
-            app(Weekendr\Console\Commands\NotifyUsersOfDealsCommand::class)->handle();
+            $results = Artisan::call('custom:notify-users', ['interface' => 'web']);
 
             return response(200);
         } catch (\Exception $e) {
-            return response(500, 'Failed to send email');
+            return response("Failed to send email \n" . $e->getMessage(), 500);
         }
+    }
+
+    public function destinations()
+    {
+        return view('backend.destinations');
     }
 }

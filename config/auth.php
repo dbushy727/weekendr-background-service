@@ -67,7 +67,7 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => Weekendr\User::class,
+            'model' => Weekendr\Models\Admin::class,
         ],
 
         // 'users' => [

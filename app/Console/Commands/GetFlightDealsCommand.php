@@ -18,7 +18,7 @@ class GetFlightDealsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'custom:get-flight-deals';
+    protected $signature = 'custom:get-flight-deals {--airport=}';
 
     /**
      * The console command description.
@@ -104,6 +104,10 @@ class GetFlightDealsCommand extends Command
 
     public function airports()
     {
+        if ($this->option('airport')) {
+            return collect([$this->option('airport')]);
+        }
+
         return User::select('airport_code')->distinct()->get()->pluck('airport_code');
     }
 
@@ -146,11 +150,25 @@ class GetFlightDealsCommand extends Command
         // For some reason US-sky brings more results for US than Anywhere
         try {
             $flight_deals_us         = $skyscanner->getResults($this->friday(), $this->sunday(), $airport, 'US-sky');
-            $flight_deals_us2        = $skyscanner->getResults($this->friday()->next(5), $this->sunday()->next(0), $airport, 'US-sky');
             $flight_deals_worldwide  = $skyscanner->getResults($this->friday(), $this->sunday(), $airport, 'Anywhere');
+            $flight_deals_us2        = $skyscanner->getResults($this->friday()->next(5), $this->sunday()->next(0), $airport, 'US-sky');
             $flight_deals_worldwide2 = $skyscanner->getResults($this->friday()->next(5), $this->sunday()->next(0), $airport, 'Anywhere');
 
-            $deals = $flight_deals_us->merge($flight_deals_us2)->merge($flight_deals_worldwide)->merge($flight_deals_worldwide2);
+            $flight_deals_us3        = $skyscanner->getResults($this->friday()->next(5)->next(5), $this->sunday()->next(0)->next(0), $airport, 'US-sky');
+            $flight_deals_worldwide3 = $skyscanner->getResults($this->friday()->next(5)->next(5), $this->sunday()->next(0)->next(0), $airport, 'Anywhere');
+
+            $flight_deals_us4        = $skyscanner->getResults($this->friday()->next(5)->next(5)->next(5), $this->sunday()->next(0)->next(0)->next(0), $airport, 'US-sky');
+            $flight_deals_worldwide4 = $skyscanner->getResults($this->friday()->next(5)->next(5)->next(5), $this->sunday()->next(0)->next(0)->next(0), $airport, 'Anywhere');
+
+            $deals = $flight_deals_us
+                ->merge($flight_deals_us2)
+                ->merge($flight_deals_us3)
+                ->merge($flight_deals_us4)
+                ->merge($flight_deals_worldwide)
+                ->merge($flight_deals_worldwide2)
+                ->merge($flight_deals_worldwide3)
+                ->merge($flight_deals_worldwide4);
+
 
             foreach ($deals as $deal) {
                 if ($this->failsFlightDealValidation($deal)) {

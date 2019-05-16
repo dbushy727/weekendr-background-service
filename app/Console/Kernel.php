@@ -28,9 +28,9 @@ class Kernel extends ConsoleKernel
             ->everyFifteenMinutes()
             ->appendOutputTo(storage_path('logs/get-flight-deals.log'));
 
-        $schedule->command('custom:notify-users')
-            ->everyFifteenMinutes()
-            ->appendOutputTo(storage_path('logs/notify-users.log'));
+        // $schedule->command('custom:notify-users')
+        //     ->everyFifteenMinutes()
+        //     ->appendOutputTo(storage_path('logs/notify-users.log'));
     }
 
     /**

@@ -3,6 +3,8 @@
 namespace Weekendr\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Weekendr\Models\User;
+use Weekendr\Observers\UserObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        User::observe(UserObserver::class);
     }
 
     /**

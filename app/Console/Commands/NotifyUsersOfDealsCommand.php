@@ -18,7 +18,7 @@ class NotifyUsersOfDealsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'custom:notify-users';
+    protected $signature = 'custom:notify-users {interface=command-line}';
 
     /**
      * The console command description.
@@ -54,7 +54,9 @@ class NotifyUsersOfDealsCommand extends Command
      */
     public function handle()
     {
-        $this->climate->out(Carbon::now()->toDatetimeString() . ' Start Notifying Users');
+        if ($this->argument('interface') == 'command-line') {
+            $this->climate->out(Carbon::now()->toDatetimeString() . ' Start Notifying Users');
+        }
 
         $this->getUsersWithFlightDeals()->each(function ($users) {
             $users->first()
@@ -66,7 +68,9 @@ class NotifyUsersOfDealsCommand extends Command
                 });
         });
 
-        $this->climate->out(Carbon::now()->toDatetimeString() . ' Finish Notifying Users');
+        if ($this->argument('interface') == 'command-line') {
+            $this->climate->out(Carbon::now()->toDatetimeString() . ' Finish Notifying Users');
+        }
     }
 
     /**
@@ -150,11 +154,23 @@ class NotifyUsersOfDealsCommand extends Command
             ])->render();
         }
 
+        // Too Many Destinations for a single email with all info.
+        if ($destinations->count() > 4) {
+            return view('emails.too-many-flights-minify', [
+                'destinations'     => $destinations,
+                'all_flight_deals' => $this->allFlightDealsFromDestinations($destinations),
+                'subject'          => $this->createSubjectLine($destinations),
+                'cheapest_price'   => $this->getCheapestFlightPrice($destinations),
+            ])->render();
+        }
+
         return view('emails.multi-flight-email-minify', [
             'destinations'     => $destinations,
             'all_flight_deals' => $this->allFlightDealsFromDestinations($destinations),
             'subject'          => $this->createSubjectLine($destinations),
         ])->render();
+
+
     }
 
     public function setCampaignContent($campaign, $destinations)

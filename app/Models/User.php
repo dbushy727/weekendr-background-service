@@ -2,6 +2,7 @@
 
 namespace Weekendr\Models;
 
+use Faker\Generator as Faker;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -16,7 +17,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'email', 'airport_code',
+        'email', 'airport_code', 'slug'
     ];
 
     // protected $touches = ['user_flight_deals'];

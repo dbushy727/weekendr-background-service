@@ -2,6 +2,7 @@
 
 namespace Weekendr\Repos;
 
+use Carbon\Carbon;
 use Weekendr\External\Skyscanner;
 use Weekendr\Models\FlightDeal;
 use Weekendr\Models\User;
@@ -26,8 +27,30 @@ class FlightDealRepo
         });
     }
 
+    public function removeFromUsers(FlightDeal $flight_deal)
+    {
+        return $flight_deal->users()->whereNull('notified_at')->detach();
+    }
+
+    public function approvedFlightsReadyToNotify()
+    {
+        return $this->flight_deals->approved()->whereHas('users', function ($q) {
+            $q->whereNull('notified_at');
+            $q->whereDate('departure_date', '>=', Carbon::today());
+        });
+    }
+
     public function approve(FlightDeal $flight_deal)
     {
         return $flight_deal->update(['approved' => 1]);
+    }
+
+    public function upcomingFlightDeals($airport)
+    {
+        return $this->flight_deals
+            ->where('departure_origin', $airport)
+            ->whereDate('departure_date', '>=', Carbon::today())
+            ->with(['destination'])
+            ->get();
     }
 }

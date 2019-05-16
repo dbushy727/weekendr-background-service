@@ -29,7 +29,7 @@ class FlightDeal extends Model
 
     protected $dates = ['departure_date', 'return_date', 'created_at', 'updated_at'];
 
-    protected $appends = ['link'];
+    protected $appends = ['link', 'carriers'];
 
     public function isThisWeekend()
     {
@@ -71,6 +71,11 @@ class FlightDeal extends Model
     public function users()
     {
         return $this->belongsToMany(User::class, 'user_flight_deals')->withTimestamps()->withPivot(['notified_at']);
+    }
+
+    public function destination()
+    {
+        return $this->belongsTo(Destination::class, 'destination_city', 'name');
     }
 
     public function scopeApproved($query)

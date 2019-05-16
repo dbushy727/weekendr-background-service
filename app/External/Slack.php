@@ -17,7 +17,7 @@ class Slack
 
     public function body()
     {
-        $link = "http://55bf56f4.ngrok.io/admin";
+        $link = "http://7f62cf87.ngrok.io/admin";
 
         return '{"text": "We found some flight deals", "attachments": [{"fallback": "Go to Admin Dashboard ' . $link .'", "actions": [{"type": "button", "text": "Check em out 🛫", "url": "'. $link . '", "style": "primary"} ] } ] }';
     }

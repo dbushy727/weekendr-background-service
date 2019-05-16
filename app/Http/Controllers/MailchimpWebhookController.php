@@ -42,7 +42,7 @@ class MailchimpWebhookController extends Controller
 
     protected function addUser($data)
     {
-        return User::create(['email' => array_get($data, 'email'), 'airport_code' => array_get($data, 'merges.MMERGE5')]);
+        return User::create(['email' => array_get($data, 'email'), 'airport_code' => array_get($data, 'merges.AIRPORT')]);
     }
 
     protected function deleteUser($data)
@@ -55,7 +55,7 @@ class MailchimpWebhookController extends Controller
     protected function updateUser($data)
     {
         $user = User::where('email', array_get($data, 'email'))->firstOrFail();
-        $user->update(['email' => array_get($data, 'merges.EMAIL'), 'airport_code' => array_get($data, 'merges.MMERGE5')]);
+        $user->update(['email' => array_get($data, 'merges.EMAIL'), 'airport_code' => array_get($data, 'merges.AIRPORT')]);
 
         return $user = User::where('email', array_get($data, 'email'))->firstOrFail();
     }
